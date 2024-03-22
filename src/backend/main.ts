@@ -437,19 +437,19 @@ if (!gotTheLock) {
       logWarning('Protocol already registered.', LogPrefix.Backend)
     }
 
-    if(!app.isDefaultProtocolClient('com.epicgames.launcher')) {
+    if (!app.isDefaultProtocolClient('com.epicgames.launcher')) {
       //no offical client on linux
-      if(platform() === 'linux')
-      {
+      if (platform() === 'linux') {
         if (app.setAsDefaultProtocolClient('com.epicgames.launcher')) {
           logInfo('Registered protocol with OS.', LogPrefix.Backend)
         } else {
           logWarning('Failed to register protocol with OS.', LogPrefix.Backend)
         }
-      }
-      else
-      {
-        logWarning('Epic Games Launcher protocol not registered.', LogPrefix.Backend)
+      } else {
+        logWarning(
+          'Epic Games Launcher protocol not registered.',
+          LogPrefix.Backend
+        )
       }
     }
 

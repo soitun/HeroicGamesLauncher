@@ -56,13 +56,18 @@ export async function handleEGLProtocol(args: string[]) {
   switch (command) {
     case 'store':
       logInfo(`opening store ${arg}`, LogPrefix.ProtocolHandler)
-      if(arg === 'library')
-        sendFrontendMessage('openScreen', '/library')
+      if (arg === 'library') sendFrontendMessage('openScreen', '/library')
       else
-        sendFrontendMessage('openScreen', `/store-page?store-url=${'https://www.epicgames.com/store/' + arg}`);
+        sendFrontendMessage(
+          'openScreen',
+          `/store-page?store-url=${'https://www.epicgames.com/store/' + arg}`
+        )
       break
     default:
-      logInfo(`received unknown EGL command ${command}`, LogPrefix.ProtocolHandler)
+      logInfo(
+        `received unknown EGL command ${command}`,
+        LogPrefix.ProtocolHandler
+      )
       return
   }
 
@@ -93,7 +98,6 @@ function getUrl(args: string[]): string | undefined {
 function getEGLUrl(args: string[]): string | undefined {
   return args.find((arg) => arg.startsWith('com.epicgames.launcher://'))
 }
-
 
 /**
  * Parses a url into a tuple of [Command, Runner?, string?]
@@ -129,8 +133,11 @@ function parseEGLUrl(url: string): [EGLCommand, string?] {
   if (index === -1) {
     return [fullCommand as EGLCommand]
   }
-  
-  return [fullCommand.substring(0, index) as EGLCommand, fullCommand.substring(index+1)]
+
+  return [
+    fullCommand.substring(0, index) as EGLCommand,
+    fullCommand.substring(index + 1)
+  ]
 }
 
 async function handlePing(arg: string) {
