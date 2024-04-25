@@ -8,7 +8,7 @@ import {
   GameMetadataInner,
   LegendaryInstallInfo
 } from './types/legendary'
-import { IpcRendererEvent, TitleBarOverlay } from 'electron'
+import { TitleBarOverlay } from 'electron'
 import { ChildProcess } from 'child_process'
 import type { HowLongToBeatEntry } from 'backend/wiki_game_info/howlongtobeat/utils'
 import { NileInstallInfo, NileInstallPlatform } from './types/nile'
@@ -171,6 +171,7 @@ export interface GameSettings {
   enableDXVKFpsLimit: boolean
   enableEsync: boolean
   enableFSR: boolean
+  enableMsync: boolean
   enableFsync: boolean
   gamescope: GameScopeSettings
   enviromentOptions: EnviromentVariable[]
@@ -193,6 +194,8 @@ export interface GameSettings {
   wrapperOptions: WrapperVariable[]
   savesPath: string
   gogSaves?: GOGCloudSavesLocation[]
+  beforeLaunchScriptPath: string
+  afterLaunchScriptPath: string
 }
 
 export type Status =
@@ -534,31 +537,11 @@ interface GamepadActionArgsWithoutMetadata {
   metadata?: undefined
 }
 
-type ElWebview = {
-  canGoBack: () => boolean
-  canGoForward: () => boolean
-  goBack: () => void
-  goForward: () => void
-  reload: () => void
-  isLoading: () => boolean
-  getURL: () => string
-  copy: () => string
-  selectAll: () => void
-  findInPage: (text: string | RegExp) => void
-}
-
-export type WebviewType = HTMLWebViewElement & ElWebview
-
 export type InstallPlatform =
   | LegendaryInstallPlatform
   | GogInstallPlatform
   | NileInstallPlatform
   | 'Browser'
-
-export type ConnectivityChangedCallback = (
-  event: IpcRendererEvent,
-  status: ConnectivityStatus
-) => void
 
 export type ConnectivityStatus = 'offline' | 'check-online' | 'online'
 
@@ -770,6 +753,7 @@ interface GameScopeSettings {
   upscaleMethod: string
   fpsLimiter: string
   fpsLimiterNoFocus: string
+  additionalOptions: string
 }
 
 export type InstallInfo =

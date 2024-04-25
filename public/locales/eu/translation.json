@@ -157,7 +157,8 @@
         "wineprefix": "Aukeratu Wine Prefix karpeta",
         "yes": "BAI",
         "dontShowAgain": "Ez erakutsi berriro",
-        "choose-nile-binary": "Hautatu Nile bitarra"
+        "choose-nile-binary": "Hautatu Nile bitarra",
+        "update": "Update"
     },
     "button": {
         "cancel": "Ezeztatu",
@@ -218,7 +219,8 @@
     "game": {
         "status": "Egoera",
         "store": "Denda",
-        "title": "Jokoaren izenburua"
+        "title": "Jokoaren izenburua",
+        "modify": "Aldatu Instalazioa"
     },
     "generic": {
         "error": {
@@ -721,5 +723,8 @@
     "category-settings": {
         "cancel": "Ezeztatu",
         "warning": "Warning"
+    },
+    "window": {
+        "close": "Itxi"
     }
 }

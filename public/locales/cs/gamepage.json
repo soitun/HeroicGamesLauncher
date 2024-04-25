@@ -187,7 +187,9 @@
     },
     "setting": {
         "use-default-wine-settings": "Použít výchozí nastavení Wine",
-        "winecrossoverbottle": "CrossOver Bottle"
+        "winecrossoverbottle": "CrossOver Bottle",
+        "warn-use-default-wine-settings": "Tuto možnost použijte pouze pokud víte, co děláte.<br/>Sdílení stejného prefixu pro více her může způsobit problémy, pokud jsou jejich závislosti nekompatibilní.",
+        "show-wine-settings": "Zobrazit nastavení Wine"
     },
     "sideload": {
         "field": {
@@ -209,7 +211,7 @@
         }
     },
     "specs": {
-        "minimum": "Minimum",
+        "minimum": "Minimální",
         "recommended": "Doporučené"
     },
     "status": {
@@ -230,7 +232,7 @@
         "uninstalling": "Odinstalace",
         "updating": "Aktualizuji hru",
         "playing": "Hraní",
-        "moving-files": "Přesouvání souboru '{{file}}': {{percent}} ",
+        "moving-files": "Přesouvání souboru „{{file}}“: {{percent}} %",
         "syncingSaves": "Synchronizuji uložené soubory",
         "launching": "Spouštění",
         "ubisoft": "Instalace Ubisoftu",

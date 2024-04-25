@@ -31,6 +31,8 @@ import { InstallModal } from './components'
 import LibraryContext from './LibraryContext'
 import { Category, PlatformsFilters, StoresFilters } from 'frontend/types'
 import { hasHelp } from 'frontend/hooks/hasHelp'
+import EmptyLibraryMessage from './components/EmptyLibrary'
+import CategoriesManager from './components/CategoriesManager'
 
 const storage = window.localStorage
 
@@ -166,6 +168,8 @@ export default React.memo(function Library(): JSX.Element {
     storage.setItem('show_support_offline_only', JSON.stringify(value))
     setSupportOfflineOnly(value)
   }
+
+  const [showCategories, setShowCategories] = useState(false)
 
   const [showModal, setShowModal] = useState<ModalState>({
     game: '',
@@ -594,7 +598,9 @@ export default React.memo(function Library(): JSX.Element {
         showSupportOfflineOnly,
         setShowSupportOfflineOnly: handleShowSupportOfflineOnly,
         sortDescending,
-        sortInstalled
+        sortInstalled,
+        handleAddGameButtonClick: () => handleModal('', 'sideload', null),
+        setShowCategories
       }}
     >
       <Header />
@@ -621,20 +627,20 @@ export default React.memo(function Library(): JSX.Element {
           </>
         )}
 
-        <LibraryHeader
-          list={libraryToShow}
-          handleAddGameButtonClick={() => handleModal('', 'sideload', null)}
-        />
+        <LibraryHeader list={libraryToShow} />
 
         {refreshing && !refreshingInTheBackground && <UpdateComponent inline />}
 
-        {(!refreshing || refreshingInTheBackground) && (
-          <GamesList
-            library={libraryToShow}
-            layout={layout}
-            handleGameCardClick={handleModal}
-          />
-        )}
+        {libraryToShow.length === 0 && <EmptyLibraryMessage />}
+
+        {libraryToShow.length > 0 &&
+          (!refreshing || refreshingInTheBackground) && (
+            <GamesList
+              library={libraryToShow}
+              layout={layout}
+              handleGameCardClick={handleModal}
+            />
+          )}
       </div>
 
       <button id="backToTopBtn" onClick={backToTop} ref={backToTopElement}>
@@ -656,6 +662,8 @@ export default React.memo(function Library(): JSX.Element {
           }
         />
       )}
+
+      {showCategories && <CategoriesManager />}
     </LibraryContext.Provider>
   )
 })

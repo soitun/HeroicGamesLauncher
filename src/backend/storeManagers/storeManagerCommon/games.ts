@@ -3,12 +3,14 @@ import { GameConfig } from '../../game_config'
 import { isMac, isLinux, icon } from '../../constants'
 import {
   appendGamePlayLog,
+  appendWinetricksGamePlayLog,
   lastPlayLogFileLocation,
   logInfo,
   LogPrefix,
+  logsDisabled,
   logWarning
 } from '../../logger/logger'
-import { dirname } from 'path'
+import { basename, dirname } from 'path'
 import { constants as FS_CONSTANTS } from 'graceful-fs'
 import i18next from 'i18next'
 import {
@@ -162,7 +164,10 @@ export async function launchGame(
       steamRuntime
     } = await prepareLaunch(gameSettings, gameInfo, isNative)
 
-    if (!isNative) await prepareWineLaunch(runner, appName)
+    if (!isNative) {
+      await prepareWineLaunch(runner, appName)
+      appendWinetricksGamePlayLog(gameInfo)
+    }
 
     const wrappers = setupWrappers(
       gameSettings,
@@ -220,7 +225,7 @@ export async function launchGame(
         {
           name: runner,
           logPrefix: LogPrefix.Backend,
-          bin: executable,
+          bin: basename(executable),
           dir: dirname(executable)
         },
         {
@@ -253,7 +258,10 @@ export async function launchGame(
       options: {
         wrappers,
         logFile: lastPlayLogFileLocation(appName),
-        logMessagePrefix: LogPrefix.Backend
+        logMessagePrefix: LogPrefix.Backend,
+        onOutput: (output) => {
+          if (!logsDisabled) appendGamePlayLog(gameInfo, output)
+        }
       }
     })
 

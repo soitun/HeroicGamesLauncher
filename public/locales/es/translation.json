@@ -1,6 +1,6 @@
 {
     "accessibility": {
-        "actions_font_family_no_default": "Tipografía de acciones (Por Defecto: ",
+        "actions_font_family_no_default": "Tipografía de acciones (Por Defecto):",
         "all_tiles_in_color": "Mostrar todos los juegos a color en la biblioteca",
         "content_font_family_no_default": "Tipografía de contenido (Por Defecto: ",
         "fonts": "Tipografías",
@@ -169,7 +169,10 @@
         "wineprefix": "Selecciona la carpeta de los prefijos para Wine",
         "yes": "SÍ",
         "dontShowAgain": "No volver a mostrar",
-        "choose-nile-binary": "Seleccionar binario del Nile"
+        "choose-nile-binary": "Seleccionar binario del Nile",
+        "update": "Actualizar",
+        "postpone": "Posponer",
+        "changelog": "Registro de cambios"
     },
     "button": {
         "cancel": "Cancelar",
@@ -230,7 +233,8 @@
     "game": {
         "status": "Estado",
         "store": "Tienda",
-        "title": "Título del juego"
+        "title": "Título del juego",
+        "modify": "Modificar instalación"
     },
     "generic": {
         "error": {
@@ -506,7 +510,7 @@
         "gogdl-version": "Versión de GOGDL: ",
         "legendary-version": "Versión de Legendary: ",
         "weblate": "Ayuda a traducir Heroic.",
-        "nile-version": "Versión del Nilo: "
+        "nile-version": "Versión del Nile: "
     },
     "Other": "Otros",
     "placeholder": {
@@ -754,7 +758,7 @@
                 "help8": "Juegos Instalados"
             },
             "title": {
-                "resetHeroic": "Reset Heroic"
+                "resetHeroic": "Resetear Heroic"
             }
         }
     },
@@ -862,5 +866,22 @@
         "add-new-category": "Añadir una nueva categoría",
         "cancel": "Cancelar",
         "warning": "Advertencia"
+    },
+    "adtraction-locked": {
+        "dont-show-again": "No volver a mostrar este aviso",
+        "title": "Adtraction está bloqueado",
+        "description": "Parece que el dominio track.adtraction.com no pudo cargar o está bloqueado. Con adtraction, cualquier compra que haga en la tienda GOG apoya Heroic financieramente. Considere eliminar el bloqueo si desea contribuir."
+    },
+    "emptyLibrary": {
+        "noResults": "Los filtros actuales no produjeron resultados.",
+        "noGames": "Tu biblioteca está vacía. Puedes <1>iniciar sesión</1> usando una tienda o hacer clic en <3></3> para añadir una manualmente."
+    },
+    "categories-manager": {
+        "add-placeholder": "Añadir una nueva categoría",
+        "cancel-remove": "Cancelar la eliminación de \"{{name}}\"",
+        "cancel-rename": "Cancelar el cambio de nombre de \"{{name}}\"",
+        "no-categories": "Aún no hay categorías.",
+        "remove": "Remover \"{{name}}\"",
+        "add": "Añadir"
     }
 }

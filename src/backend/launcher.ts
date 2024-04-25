@@ -44,6 +44,7 @@ import {
 import {
   appendFileLog,
   appendGameLog,
+  appendGamePlayLog,
   appendRunnerLog,
   initFileLog,
   initGameLog,
@@ -213,6 +214,10 @@ async function prepareLaunch(
           gameScopeCommand.push('-o', gameSettings.gamescope.fpsLimiterNoFocus)
         }
       }
+
+      gameScopeCommand.push(
+        ...shlex.split(gameSettings.gamescope.additionalOptions ?? '')
+      )
 
       // Note: needs to be the last option
       gameScopeCommand.push('--')
@@ -569,24 +574,41 @@ function setupWineEnvVars(gameSettings: GameSettings, gameId = '0') {
   if (!gameSettings.enableEsync && wineVersion.type === 'proton') {
     ret.PROTON_NO_ESYNC = '1'
   }
-  if (gameSettings.enableFsync && wineVersion.type !== 'proton') {
+  if (gameSettings.enableMsync && isMac) {
+    ret.WINEMSYNC = '1'
+    // This is to solve a problem with d3dmetal
+    if (wineVersion.type === 'toolkit') {
+      ret.WINEESYNC = '1'
+    }
+  }
+  if (isLinux && gameSettings.enableFsync && wineVersion.type !== 'proton') {
     ret.WINEFSYNC = '1'
   }
-  if (!gameSettings.enableFsync && wineVersion.type === 'proton') {
+  if (isLinux && !gameSettings.enableFsync && wineVersion.type === 'proton') {
     ret.PROTON_NO_FSYNC = '1'
   }
-  if (gameSettings.autoInstallDxvkNvapi && wineVersion.type === 'proton') {
-    ret.PROTON_ENABLE_NVAPI = '1'
-    ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
+  if (wineVersion.type === 'proton') {
+    if (gameSettings.autoInstallDxvkNvapi) {
+      ret.PROTON_ENABLE_NVAPI = '1'
+      ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
+    }
+    // proton 9 enabled NVAPI by default
+    else {
+      ret.PROTON_DISABLE_NVAPI = '1'
+    }
   }
-  if (gameSettings.autoInstallDxvkNvapi && wineVersion.type === 'wine') {
+  if (
+    isLinux &&
+    gameSettings.autoInstallDxvkNvapi &&
+    wineVersion.type === 'wine'
+  ) {
     ret.DXVK_ENABLE_NVAPI = '1'
     ret.DXVK_NVAPI_ALLOW_OTHER_DRIVERS = '1'
   }
-  if (gameSettings.eacRuntime) {
+  if (isLinux && gameSettings.eacRuntime) {
     ret.PROTON_EAC_RUNTIME = join(runtimePath, 'eac_runtime')
   }
-  if (gameSettings.battlEyeRuntime) {
+  if (isLinux && gameSettings.battlEyeRuntime) {
     ret.PROTON_BATTLEYE_RUNTIME = join(runtimePath, 'battleye_runtime')
   }
   if (wineVersion.type === 'proton') {
@@ -993,6 +1015,10 @@ async function callRunner(
   let bin = runner.bin
   let fullRunnerPath = join(runner.dir, bin)
 
+  // macOS/Linux: `spawn`ing an executable in the current working directory
+  // requires a "./"
+  if (!isWindows) bin = './' + bin
+
   // On Windows: Use PowerShell's `Start-Process` to wait for the process and
   // its children to exit, provided PowerShell is available
   if (shouldUsePowerShell === null)
@@ -1000,15 +1026,18 @@ async function callRunner(
       isWindows && !!(await searchForExecutableOnPath('powershell'))
 
   if (shouldUsePowerShell) {
-    const argsAsString = commandParts.map((part) => `"\`"${part}\`""`).join(',')
+    const argsAsString = commandParts
+      .map((part) => part.replaceAll('\\', '\\\\'))
+      .map((part) => `"\`"${part}\`""`)
+      .join(',')
     commandParts = [
       'Start-Process',
       `"\`"${fullRunnerPath}\`""`,
       '-Wait',
-      '-ArgumentList',
-      argsAsString,
       '-NoNewWindow'
     ]
+    if (argsAsString) commandParts.push('-ArgumentList', argsAsString)
+
     bin = fullRunnerPath = 'powershell'
   }
 
@@ -1281,6 +1310,86 @@ async function getWinePath({
   return stdout.trim()
 }
 
+async function runBeforeLaunchScript(
+  gameInfo: GameInfo,
+  gameSettings: GameSettings
+) {
+  if (!gameSettings.beforeLaunchScriptPath) {
+    return true
+  }
+
+  appendGamePlayLog(
+    gameInfo,
+    `Running script before ${gameInfo.title} (${gameSettings.beforeLaunchScriptPath})\n`
+  )
+
+  return runScriptForGame(gameInfo, gameSettings.beforeLaunchScriptPath)
+}
+
+async function runAfterLaunchScript(
+  gameInfo: GameInfo,
+  gameSettings: GameSettings
+) {
+  if (!gameSettings.afterLaunchScriptPath) {
+    return true
+  }
+
+  appendGamePlayLog(
+    gameInfo,
+    `Running script after ${gameInfo.title} (${gameSettings.afterLaunchScriptPath})\n`
+  )
+  return runScriptForGame(gameInfo, gameSettings.afterLaunchScriptPath)
+}
+
+/* Execute script before launch/after exit, wait until the script
+ * exits to continue
+ *
+ * The script can start sub-processes with `bash another-command &`
+ * if `another-command` should run asynchronously
+ *
+ * For example:
+ *
+ * ```
+ * #!/bin/bash
+ *
+ * echo "this runs before/after the game"
+ * bash ./another.bash & # this is launched before/after the game but is not waited
+ * echo "this also runs before/after the game too" > someoutput.txt
+ * ```
+ *
+ * Notes:
+ * - Output and logs are printed in the game's log
+ * - Make sure the script is executable
+ * - Make sure any async process is not stuck running in the background forever,
+ *   use the after script to kill any running process if that's the case
+ */
+async function runScriptForGame(
+  gameInfo: GameInfo,
+  scriptPath: string
+): Promise<boolean | string> {
+  return new Promise((resolve, reject) => {
+    const child = spawn(scriptPath, { cwd: gameInfo.install.install_path })
+
+    child.stdout.on('data', (data) => {
+      appendGamePlayLog(gameInfo, data.toString())
+    })
+
+    child.stderr.on('data', (data) => {
+      appendGamePlayLog(gameInfo, data.toString())
+    })
+
+    child.on('exit', () => {
+      resolve(true)
+    })
+
+    child.on('error', (err: Error) => {
+      appendGamePlayLog(gameInfo, err.message)
+      if (err.stack) appendGamePlayLog(gameInfo, err.stack)
+      reject(err.message)
+    })
+  })
+}
+
 export {
   prepareLaunch,
   launchCleanup,
@@ -1292,5 +1401,7 @@ export {
   runWineCommand,
   callRunner,
   getRunnerCallWithoutCredentials,
-  getWinePath
+  getWinePath,
+  runAfterLaunchScript,
+  runBeforeLaunchScript
 }

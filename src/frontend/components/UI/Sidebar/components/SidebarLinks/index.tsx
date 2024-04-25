@@ -70,13 +70,13 @@ export default function SidebarLinks() {
   }
 
   // By default, open Epic Store
-  let defaultStore = '/epicstore'
+  let defaultStore = 'epic'
   if (!epic.username && !gog.username && amazon.user_id) {
     // If only logged in to Amazon Games, open Amazon Gaming
-    defaultStore = '/amazonstore'
+    defaultStore = 'amazon'
   } else if (!epic.username && gog.username) {
     // Otherwise, if not logged in to Epic Games, open GOG Store
-    defaultStore = '/gogstore'
+    defaultStore = 'gog'
   }
 
   // if we have a stored last-url, default to the `/last-url` route
@@ -96,7 +96,7 @@ export default function SidebarLinks() {
       )}
       <SidebarItem
         isActiveFallback={location.pathname.includes('gamepage')}
-        url="/library"
+        url="/"
         icon={faGamepad}
         label={t('Library')}
         onClick={async () => handleRefresh()}
@@ -105,7 +105,7 @@ export default function SidebarLinks() {
       <div className="SidebarItemWithSubmenu">
         <SidebarItem
           isActiveFallback={location.pathname.includes('store')}
-          url={defaultStore}
+          url={`/store/${defaultStore}`}
           icon={faStore}
           label={t('stores', 'Stores')}
         />
@@ -113,17 +113,17 @@ export default function SidebarLinks() {
           <div className="SidebarSubmenu">
             <SidebarItem
               className="SidebarLinks__subItem"
-              url="epicstore"
+              url="/store/epic"
               label={t('store', 'Epic Store')}
             />
             <SidebarItem
               className="SidebarLinks__subItem"
-              url="/gogstore"
+              url="/store/gog"
               label={t('gog-store', 'GOG Store')}
             />
             <SidebarItem
               className="SidebarLinks__subItem"
-              url="/amazonstore"
+              url="/store/amazon"
               label={t('prime-gaming', 'Prime Gaming')}
             />
           </div>
