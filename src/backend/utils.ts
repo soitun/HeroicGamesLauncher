@@ -464,6 +464,16 @@ function getGOGdlBin(): { dir: string; bin: string } {
   )
 }
 
+function getCometBin(): { dir: string; bin: string } {
+  const settings = GlobalConfig.get().getSettings()
+  if (settings?.altCometBin) {
+    return splitPathAndName(settings.altCometBin)
+  }
+  return splitPathAndName(
+    fixAsarPath(join(publicDir, 'bin', process.platform, 'comet'))
+  )
+}
+
 function getNileBin(): { dir: string; bin: string } {
   const settings = GlobalConfig.get().getSettings()
   if (settings?.altNileBin) {
@@ -1504,6 +1514,7 @@ export {
   resetHeroic,
   getLegendaryBin,
   getGOGdlBin,
+  getCometBin,
   getNileBin,
   formatEpicStoreUrl,
   getSteamRuntime,
