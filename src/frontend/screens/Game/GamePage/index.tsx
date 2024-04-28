@@ -171,7 +171,6 @@ export default React.memo(function GamePage(): JSX.Element | null {
       if (gameInfo && status) {
         const {
           install,
-          is_installed,
           is_linux_native = undefined,
           is_mac_native = undefined
         } = { ...gameInfo }
@@ -186,7 +185,6 @@ export default React.memo(function GamePage(): JSX.Element | null {
 
         if (
           runner !== 'sideload' &&
-          !is_installed &&
           !notSupportedGame &&
           !notInstallable &&
           !isOffline

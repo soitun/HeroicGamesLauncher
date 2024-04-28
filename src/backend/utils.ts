@@ -59,6 +59,7 @@ import {
   installInfoStore as GOGinstallInfoStore,
   libraryStore as GOGlibraryStore
 } from './storeManagers/gog/electronStores'
+import gogPresence from './storeManagers/gog/presence'
 import {
   installStore as nileInstallStore,
   libraryStore as nileLibraryStore
@@ -239,6 +240,8 @@ const showAboutWindow = () => {
 async function handleExit() {
   const isLocked = existsSync(join(gamesConfigPath, 'lock'))
   const mainWindow = getMainWindow()
+
+  await gogPresence.deletePresence()
 
   if (isLocked && mainWindow) {
     const { response } = await showMessageBox(mainWindow, {
