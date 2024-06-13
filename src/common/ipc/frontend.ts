@@ -1,7 +1,11 @@
 // eslint-disable-next-line no-restricted-imports
 import { ipcRenderer, type IpcRendererEvent } from 'electron'
 
-import type { AsyncIPCFunctions, SyncIPCFunctions } from './types'
+import type {
+  AsyncIPCFunctions,
+  SyncIPCFunctions,
+  FrontendMessages
+} from './types'
 
 // Creates a Promise<T> only if T isn't already a promise
 type PromiseOnce<T> = T extends Promise<unknown> ? T : Promise<T>
@@ -26,10 +30,15 @@ function makeHandlerInvoker<ChannelName extends keyof AsyncIPCFunctions>(
 }
 
 // Returns a function the Frontend can call to add a listener to this channel
-// The listener has to accept the Parameters specified with the Params type
-function frontendListenerSlot<Params extends unknown[]>(channel: string) {
-  return (listener: (e: IpcRendererEvent, ...args: Params) => void) =>
-    ipcRenderer.on(channel, listener as never)
+function frontendListenerSlot<ChannelName extends keyof FrontendMessages>(
+  channel: ChannelName
+) {
+  return (
+    listener: (
+      e: IpcRendererEvent,
+      ...args: Parameters<FrontendMessages[ChannelName]>
+    ) => void
+  ) => ipcRenderer.on(channel, listener as never)
 }
 
 export { makeListenerCaller, makeHandlerInvoker, frontendListenerSlot }

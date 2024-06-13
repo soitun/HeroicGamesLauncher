@@ -94,14 +94,7 @@ export const runWineCommand = async (args: WineCommandArgs) =>
 export const runWineCommandForGame = async (args: RunWineCommandArgs) =>
   ipcRenderer.invoke('runWineCommandForGame', args)
 
-export const onConnectivityChanged = fls<
-  [
-    status: {
-      status: ConnectivityStatus
-      retryIn: number
-    }
-  ]
->('connectivity-changed')
+export const onConnectivityChanged = fls('connectivity-changed')
 
 export const getConnectivityStatus = async () =>
   ipcRenderer.invoke('get-connectivity-status')
