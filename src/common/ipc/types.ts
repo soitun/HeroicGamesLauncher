@@ -1,5 +1,4 @@
-import { EventEmitter } from 'node:events'
-import { IpcMainEvent, OpenDialogOptions, TitleBarOverlay } from 'electron'
+import { OpenDialogOptions, TitleBarOverlay } from 'electron'
 
 import {
   Runner,
@@ -21,7 +20,6 @@ import {
   StatusPromise,
   SaveSyncArgs,
   RunWineCommandArgs,
-  SideloadGame,
   WineVersionInfo,
   AntiCheatInfo,
   RuntimeName,
@@ -31,10 +29,12 @@ import {
   ExtraInfo,
   LaunchOption,
   DownloadManagerState,
-  InstallInfo
+  InstallInfo,
+  ExecResult,
+  WikiInfo
 } from 'common/types'
-import { SelectiveDownload } from 'common/types/legendary'
-import { GOGCloudSavesLocation } from 'common/types/gog'
+import { GameOverride, SelectiveDownload } from 'common/types/legendary'
+import { GOGCloudSavesLocation, UserData } from 'common/types/gog'
 import {
   NileLoginData,
   NileRegisterData,
@@ -50,8 +50,7 @@ import type { SystemInformation } from 'backend/utils/systeminfo'
  *    I've decided against that to keep it in line with the `AsyncIPCFunctions`
  *    interface
  */
-// ts-prune-ignore-next
-interface SyncIPCFunctions {
+export interface SyncIPCFunctions {
   setZoomFactor: (zoomFactor: string) => void
   changeLanguage: (language: string) => void
   notify: (args: { title: string; body: string }) => void
@@ -85,7 +84,7 @@ interface SyncIPCFunctions {
   showItemInFolder: (item: string) => void
   clipboardWriteText: (text: string) => void
   processShortcut: (combination: string) => void
-  addNewApp: (args: SideloadGame) => void
+  addNewApp: (args: GameInfo) => void
   showLogFileInFolder: (appNameOrRunner: string) => void
   addShortcut: (appName: string, runner: Runner, fromMenu: boolean) => void
   removeShortcut: (appName: string, runner: Runner) => void
@@ -105,9 +104,9 @@ interface SyncIPCFunctions {
   unmaximizeWindow: () => void
   closeWindow: () => void
   setTitleBarOverlay: (options: TitleBarOverlay) => void
-  winetricksInstall: ({
-    runner: Runner,
-    appName: string,
+  winetricksInstall: (args: {
+    runner: Runner
+    appName: string
     component: string
   }) => void
   changeGameVersionPinnedStatus: (
@@ -117,8 +116,7 @@ interface SyncIPCFunctions {
   ) => void
 }
 
-// ts-prune-ignore-next
-interface AsyncIPCFunctions {
+export interface AsyncIPCFunctions {
   addToDMQueue: (element: DMQueueElement) => Promise<void>
   kill: (appName: string, runner: Runner) => Promise<void>
   checkDiskSpace: (folder: string) => Promise<DiskSpaceData>
@@ -126,12 +124,12 @@ interface AsyncIPCFunctions {
   runWineCommand: (
     args: WineCommandArgs
   ) => Promise<{ stdout: string; stderr: string }>
-  winetricksInstalled: ({
-    runner: Runner,
+  winetricksInstalled: (args: {
+    runner: Runner
     appName: string
   }) => Promise<string[]>
-  winetricksAvailable: ({
-    runner: Runner,
+  winetricksAvailable: (args: {
+    runner: Runner
     appName: string
   }) => Promise<string[]>
   checkGameUpdates: () => Promise<string[]>
@@ -267,7 +265,7 @@ interface AsyncIPCFunctions {
   getDefaultSavePath: (
     appName: string,
     runner: Runner,
-    alreadyDefinedGogSaves: GOGCloudSavesLocation[]
+    alreadyDefinedGogSaves?: GOGCloudSavesLocation[]
   ) => Promise<string | GOGCloudSavesLocation[]>
   isGameAvailable: (args: {
     appName: string
@@ -295,60 +293,4 @@ interface AsyncIPCFunctions {
     enabled: boolean
     modsToLoad: string[]
   }) => Promise<void>
-}
-
-// This is quite ugly & throws a lot of errors in a regular .ts file
-// TODO: Find a TS magician who can improve this further
-// ts-prune-ignore-next
-declare namespace Electron {
-  class IpcMain extends EventEmitter {
-    public on: <
-      Name extends keyof SyncIPCFunctions,
-      Definition extends SyncIPCFunctions[Name]
-    >(
-      name: Name,
-      callback: (e: IpcMainEvent, ...args: Parameters<Definition>) => void
-    ) => void
-
-    public handle: <
-      Name extends keyof AsyncIPCFunctions,
-      Definition extends AsyncIPCFunctions[Name]
-    >(
-      name: Name,
-      callback: (
-        e: IpcMainEvent,
-        ...args: Parameters<Definition>
-      ) => ReturnType<Definition>
-    ) => void
-  }
-
-  class IpcRenderer extends EventEmitter {
-    public send: <
-      Name extends keyof SyncIPCFunctions,
-      Definition extends SyncIPCFunctions[Name]
-    >(
-      name: Name,
-      ...args: Parameters<Definition>
-    ) => void
-
-    public invoke: <
-      Name extends keyof AsyncIPCFunctions,
-      Definition extends AsyncIPCFunctions[Name],
-      Ret extends ReturnType<Definition>
-    >(
-      name: Name,
-      ...args: Parameters<Definition>
-    ) => Ret extends Promise<unknown> ? Ret : Promise<Ret>
-  }
-
-  namespace CrossProcessExports {
-    const ipcMain: IpcMain
-    type IpcMain = Electron.IpcMain
-    const ipcRenderer: IpcRenderer
-    type IpcRenderer = Electron.IpcRenderer
-  }
-}
-
-declare module 'electron' {
-  export = Electron.CrossProcessExports
 }
