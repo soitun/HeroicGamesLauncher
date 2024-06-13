@@ -158,6 +158,12 @@ import {
   getGameSdl
 } from 'backend/storeManagers/legendary/library'
 import { storeMap } from 'common/utils'
+import {
+  getDiskInfo,
+  isAccessibleWithinFlatpakSandbox,
+  isWritable
+} from './utils/filesystem'
+import { Path } from './schemas'
 
 app.commandLine?.appendSwitch('ozone-platform-hint', 'auto')
 
@@ -1714,9 +1720,3 @@ import './wiki_game_info/ipc_handler'
 import './recent_games/ipc_handler'
 import './tools/ipc_handler'
 import './progress_bar'
-import {
-  getDiskInfo,
-  isAccessibleWithinFlatpakSandbox,
-  isWritable
-} from './utils/filesystem'
-import { Path } from './schemas'
