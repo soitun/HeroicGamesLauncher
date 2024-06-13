@@ -1,41 +1,36 @@
 import { ipcRenderer, TitleBarOverlay } from 'electron'
 import {
   Runner,
-  InstallPlatform,
   WineCommandArgs,
   ConnectivityStatus,
-  AppSettings,
   GameSettings,
   RunWineCommandArgs
 } from 'common/types'
 import { GOGCloudSavesLocation } from 'common/types/gog'
+import {
+  makeListenerCaller as lc,
+  makeHandlerInvoker as hi,
+  frontendListenerSlot as fls
+} from 'common/ipc/frontend'
 
-export const notify = (args: { title: string; body: string }) =>
-  ipcRenderer.send('notify', args)
-export const openLoginPage = () => ipcRenderer.send('openLoginPage')
-export const openSidInfoPage = () => ipcRenderer.send('openSidInfoPage')
-export const openSupportPage = () => ipcRenderer.send('openSupportPage')
-export const quit = () => ipcRenderer.send('quit')
-export const showAboutWindow = () => ipcRenderer.send('showAboutWindow')
-export const openDiscordLink = () => ipcRenderer.send('openDiscordLink')
-export const openWinePrefixFAQ = () => ipcRenderer.send('openWinePrefixFAQ')
-export const openCustomThemesWiki = () =>
-  ipcRenderer.send('openCustomThemesWiki')
-export const createNewWindow = (url: string) =>
-  ipcRenderer.send('createNewWindow', url)
+export const notify = lc('notify')
+export const openLoginPage = lc('openLoginPage')
+export const openSidInfoPage = lc('openSidInfoPage')
+export const openSupportPage = lc('openSupportPage')
+export const quit = lc('quit')
+export const showAboutWindow = lc('showAboutWindow')
+export const openDiscordLink = lc('openDiscordLink')
+export const openWinePrefixFAQ = lc('openWinePrefixFAQ')
+export const openCustomThemesWiki = lc('openCustomThemesWiki')
+export const createNewWindow = lc('createNewWindow')
 
-export const readConfig = async (file: 'library' | 'user') =>
-  ipcRenderer.invoke('readConfig', file)
+export const readConfig = hi('readConfig')
 
-export const isLoggedIn = async () => ipcRenderer.invoke('isLoggedIn')
+export const isLoggedIn = hi('isLoggedIn')
 
-export const writeConfig = async (data: {
-  appName: string
-  config: Partial<AppSettings>
-}) => ipcRenderer.invoke('writeConfig', data)
+export const writeConfig = hi('writeConfig')
 
-export const kill = async (appName: string, runner: Runner) =>
-  ipcRenderer.invoke('kill', appName, runner)
+export const kill = hi('kill')
 
 export const abort = (id: string) => ipcRenderer.send('abort', id)
 
@@ -91,21 +86,7 @@ export const getGameSettings = async (
 ): Promise<GameSettings | null> =>
   ipcRenderer.invoke('getGameSettings', appName, runner)
 
-export const getInstallInfo = async (
-  appName: string,
-  runner: Runner,
-  installPlatform: InstallPlatform,
-  build?: string,
-  branch?: string
-) =>
-  ipcRenderer.invoke(
-    'getInstallInfo',
-    appName,
-    runner,
-    installPlatform,
-    build,
-    branch
-  )
+export const getInstallInfo = hi('getInstallInfo')
 
 export const runWineCommand = async (args: WineCommandArgs) =>
   ipcRenderer.invoke('runWineCommand', args)
@@ -113,15 +94,14 @@ export const runWineCommand = async (args: WineCommandArgs) =>
 export const runWineCommandForGame = async (args: RunWineCommandArgs) =>
   ipcRenderer.invoke('runWineCommandForGame', args)
 
-export const onConnectivityChanged = async (
-  callback: (
-    event: Electron.IpcRendererEvent,
+export const onConnectivityChanged = fls<
+  [
     status: {
       status: ConnectivityStatus
       retryIn: number
     }
-  ) => void
-) => ipcRenderer.on('connectivity-changed', callback)
+  ]
+>('connectivity-changed')
 
 export const getConnectivityStatus = async () =>
   ipcRenderer.invoke('get-connectivity-status')
