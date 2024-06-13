@@ -164,6 +164,7 @@ import {
   isWritable
 } from './utils/filesystem'
 import { Path } from './schemas'
+import { addHandler as addIpcHandler } from '../common/ipc/backend'
 
 app.commandLine?.appendSwitch('ozone-platform-hint', 'auto')
 
@@ -709,7 +710,7 @@ ipcMain.handle('isGameAvailable', async (e, args) => {
   return gameManagerMap[runner].isGameAvailable(appName)
 })
 
-ipcMain.handle('getGameInfo', async (event, appName, runner) => {
+addIpcHandler('getGameInfo', async (event, appName, runner) => {
   // Fastpath since we sometimes have to request info for a GOG game as Legendary because we don't know it's a GOG game yet
   if (runner === 'legendary' && !LegendaryLibraryManager.hasGame(appName)) {
     return null
@@ -943,7 +944,7 @@ ipcMain.on('logInfo', (e, info) => logInfo(info, LogPrefix.Frontend))
 let powerDisplayId: number | null
 
 // get pid/tid on launch and inject
-ipcMain.handle(
+addIpcHandler(
   'launch',
   async (
     event,
@@ -1471,9 +1472,9 @@ ipcMain.handle(
   }
 )
 
-ipcMain.handle(
+addIpcHandler(
   'getDefaultSavePath',
-  async (event, appName, runner, alreadyDefinedGogSaves) =>
+  async (event, appName, runner, alreadyDefinedGogSaves = []) =>
     getDefaultSavePath(appName, runner, alreadyDefinedGogSaves)
 )
 
