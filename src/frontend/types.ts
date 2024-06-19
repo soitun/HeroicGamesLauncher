@@ -232,3 +232,17 @@ export interface HelpItem {
 export type SettingsModalType = 'settings' | 'log' | 'category'
 
 export type ControllerChangedEvent = CustomEvent<{ controllerId: string }>
+
+export type InstallModalOptions =
+  | {
+      show: false
+      gameInfo?: undefined
+      appName?: undefined
+      runner?: undefined
+    }
+  | {
+      show: true
+      gameInfo: GameInfo | null
+      appName: string
+      runner: Runner
+    }

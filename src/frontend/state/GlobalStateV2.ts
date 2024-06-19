@@ -9,6 +9,7 @@ import type {
   DialogModalOptions,
   ExternalLinkDialogOptions,
   HelpItem,
+  InstallModalOptions,
   SettingsModalType
 } from '../types'
 import type {
@@ -77,6 +78,8 @@ interface GlobalStateV2 extends ExperimentalFeatures {
   disableDialogBackdropClose: boolean
 
   activeController: string
+
+  installModalOptions: InstallModalOptions
 }
 
 const useGlobalState = create<GlobalStateV2>()(
@@ -220,7 +223,9 @@ const useGlobalState = create<GlobalStateV2>()(
         false
       ),
 
-      activeController: ''
+      activeController: '',
+
+      installModalOptions: { show: false }
     }),
     {
       name: 'globalState',
