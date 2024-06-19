@@ -59,7 +59,6 @@ export interface ContextType {
   setAllTilesInColor: (value: boolean) => void
   titlesAlwaysVisible: boolean
   setTitlesAlwaysVisible: (value: boolean) => void
-  activeController: string
   sideloadedLibrary: GameInfo[]
   hideChangelogsOnStartup: boolean
   setHideChangelogsOnStartup: (value: boolean) => void
@@ -231,3 +230,5 @@ export interface HelpItem {
 }
 
 export type SettingsModalType = 'settings' | 'log' | 'category'
+
+export type ControllerChangedEvent = CustomEvent<{ controllerId: string }>
