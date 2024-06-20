@@ -27,6 +27,23 @@ import { defaultThemes } from '../components/UI/ThemeSelector'
 const RTL_LANGUAGES = ['fa', 'ar']
 const DEFAULT_THEME = 'midnightMirage'
 
+// function to load the new key or fallback to the old one
+const loadCurrentCategories = () => {
+  const currentCategories =
+    localStorage.getItem('current_custom_categories') || null
+  if (!currentCategories) {
+    const currentCategory =
+      localStorage.getItem('current_custom_category') || null
+    if (!currentCategory) {
+      return []
+    } else {
+      return [currentCategory]
+    }
+  } else {
+    return JSON.parse(currentCategories) as string[]
+  }
+}
+
 interface GlobalStateV2 extends ExperimentalFeatures {
   isFullscreen: boolean
   isFrameless: boolean
@@ -88,6 +105,17 @@ interface GlobalStateV2 extends ExperimentalFeatures {
 
   hideChangelogsOnStartup: boolean
   lastChangelogShown: string | null
+
+  // The currently active category filters
+  currentCustomCategories: string[]
+  // Maps category names to games (appNames) included in that category
+  customCategories: Record<string, string[]>
+  getCustomCategories: () => string[]
+  addCustomCategory: (categoryName: string) => void
+  removeCustomCategory: (categoryName: string) => void
+  renameCustomCategory: (oldName: string, newName: string) => void
+  addGameToCustomCategory: (categoryName: string, appName: string) => void
+  removeGameFromCustomCategory: (categoryName: string, appName: string) => void
 }
 
 const useGlobalState = create<GlobalStateV2>()(
@@ -243,7 +271,64 @@ const useGlobalState = create<GlobalStateV2>()(
       hideChangelogsOnStartup: false,
       lastChangelogShown: JSON.parse(
         localStorage.getItem('last_changelog') ?? 'null'
-      )
+      ),
+
+      currentCustomCategories: loadCurrentCategories(),
+      customCategories: configStore.get('games.customCategories', {}),
+      getCustomCategories: () => Object.keys(get().customCategories),
+      addCustomCategory: (categoryName) => {
+        const { customCategories, currentCustomCategories } = get()
+        customCategories[categoryName] = []
+        set({ customCategories })
+
+        // when adding a new category, if there are categories selected, select the new
+        // one too so the game doesn't disappear form the library
+        if (currentCustomCategories.length) {
+          set({
+            currentCustomCategories: [...currentCustomCategories, categoryName]
+          })
+        }
+      },
+      removeCustomCategory: (categoryName) => {
+        const { customCategories, currentCustomCategories } = get()
+        delete customCategories[categoryName]
+        set({
+          customCategories,
+          currentCustomCategories: currentCustomCategories.filter(
+            (name) => name !== categoryName
+          )
+        })
+      },
+      renameCustomCategory: (oldName, newName) => {
+        const { customCategories, currentCustomCategories } = get()
+        if (!(oldName in customCategories)) return
+        customCategories[newName] = customCategories[oldName]
+        delete customCategories[oldName]
+        set({ customCategories })
+
+        const oldIndex = currentCustomCategories.findIndex(
+          (appName) => appName === oldName
+        )
+        if (oldIndex !== -1) {
+          currentCustomCategories[oldIndex] = newName
+          set({ currentCustomCategories })
+        }
+      },
+      addGameToCustomCategory: (categoryName, appName) => {
+        const { customCategories } = get()
+        customCategories[categoryName] = [
+          ...customCategories[categoryName],
+          appName
+        ]
+        set({ customCategories })
+      },
+      removeGameFromCustomCategory: (categoryName, appName) => {
+        const { customCategories } = get()
+        customCategories[categoryName] = customCategories[categoryName].filter(
+          (name) => name !== appName
+        )
+        set({ customCategories })
+      }
     }),
     {
       name: 'globalState',
@@ -259,7 +344,9 @@ const useGlobalState = create<GlobalStateV2>()(
         zoomPercent: state.zoomPercent,
         allTilesInColor: state.allTilesInColor,
         titlesAlwaysVisible: state.titlesAlwaysVisible,
-        lastChangelogShown: state.lastChangelogShown
+        lastChangelogShown: state.lastChangelogShown,
+        currentCustomCategories: state.currentCustomCategories,
+        customCategories: state.customCategories
       })
     }
   )
@@ -432,6 +519,12 @@ useGlobalState.subscribe((state, prev) => {
   zoomTimer = setTimeout(() => {
     window.api.setZoomFactor((state.zoomPercent / 100).toString())
   }, 500)
+})
+
+useGlobalState.subscribe((state, prev) => {
+  if (state.currentCustomCategories === prev.currentCustomCategories) return
+
+  console.log(state.currentCustomCategories)
 })
 
 export { useGlobalState, useShallowGlobalState }
